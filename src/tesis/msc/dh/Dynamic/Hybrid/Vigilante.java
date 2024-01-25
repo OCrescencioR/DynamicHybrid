@@ -814,5 +814,7 @@ public class Vigilante {
     public void setCost(double Cost) {
         this.Cost = Cost;
     }
+    
+    // Finish
 
 }
