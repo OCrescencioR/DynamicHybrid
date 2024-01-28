@@ -32,6 +32,7 @@ public class Fragment {
     private String siteh;
     private String sitev;
     private double approximateOperations;
+    private boolean flag;
 
     public Fragment() {
 
@@ -262,6 +263,14 @@ public class Fragment {
 
     public void setId_operation(ArrayList<Integer> id_operation) {
         this.id_operation = id_operation;
+    }
+
+    public boolean isFlag() {
+        return flag;
+    }
+
+    public void setFlag(boolean flag) {
+        this.flag = flag;
     }
 
 }

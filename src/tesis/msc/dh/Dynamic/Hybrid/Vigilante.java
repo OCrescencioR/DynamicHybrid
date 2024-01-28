@@ -221,7 +221,6 @@ public class Vigilante {
 
     private void logMongoDB() {
         try {
-
             File carpeta = new File(dirLogs);
             archivos = carpeta.listFiles();
             File ultimoModificado = null;
@@ -251,13 +250,17 @@ public class Vigilante {
                         //en un futuro se debe de complementar con mysql  
                     } else {
                         nLinea = (int) this.caracterLog;
-                        //System.out.println("NLINEA " + nLinea);
                         nLinea = this.nOperaciones(raf, nLinea);
                         ArrayList<String> remover = new ArrayList<String>();
                         for (Fragment f : this.datosBD.getTabla().getFragmentos()) {
                             for (Fragment frag : this.fragment) {
                                 if (f.getName().equals(frag.getName())) {
-                                    frag.setId_operation(f.getId_operation());
+                                    if (frag.isFlag() == false) {
+                                        frag.setId_operation(f.getId_operation());
+                                    } else {
+                                        ArrayList<Integer> nFlagArray = new ArrayList<Integer>();
+                                        f.setId_operation(nFlagArray);
+                                    }
                                     double op = this.datosBD.getTabla().getNoperaciones() * this.datosBD.getTabla().getUmbralOP() * .01;
                                     System.out.println("--------------------------------------------------------------------");
                                     System.out.println("Current operation information for hybrid fragmentation (first analysis):");
@@ -394,6 +397,9 @@ public class Vigilante {
                                     }
                                 }
                                 fragmentar = this.datosBD.crearEsquemaHybrid(this.dirLogs, ran, f, this.todos_Fragmentos(), this.dirLogs);
+                                ArrayList<Integer> operations = new ArrayList<Integer>();
+                                f.setId_operation(operations);
+                                f.setFlag(true);
                                 System.out.println(ANSI_BLUE + "------------------------------------------" + ANSI_RESET);
                                 System.out.println("Apply new Scheme Hybrid");
                                 System.out.println(ANSI_BLUE + "------------------------------------------" + ANSI_RESET);
