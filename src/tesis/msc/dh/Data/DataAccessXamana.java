@@ -27,7 +27,7 @@ public class DataAccessXamana extends DataAccess implements Serializable {
 
     public DataAccessXamana() throws Exception {
         //ip = "localhost:3306";
-        sUrl = "jdbc:mysql://192.168.1.64:3306/xamana?autoReconnect=true&useSSL=false&serverTimezone=UTC";;
+        sUrl = "jdbc:mysql://192.168.1.63:3306/xamana?autoReconnect=true&useSSL=false&serverTimezone=UTC";;
         sUsr = "root";
         sPwd = "";
     }

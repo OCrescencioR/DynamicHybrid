@@ -43,6 +43,8 @@ public class Vigilante {
     File archivos[];
     private String fragmentar;
     private int nLinea = 0;
+    private ArrayList<String> remover;
+    private ArrayList<Fragment> copia, copia02;
 
     public Vigilante() {
 
@@ -124,7 +126,7 @@ public class Vigilante {
                 System.out.format("%5s %27s\n", "Fragmented table", tabla.getNombre());
                 System.out.format("%5s %9s\n", "Operation threshold", tabla.getUmbralOP());
                 System.out.format("%5s %7s\n", "Performance threshold", tabla.getUmbralCO());
-                System.out.format("%5s %11s\n", "Total operation log", tabla.getNoperaciones());
+                System.out.format("%5s %10s\n", "Total operation log", tabla.getNoperaciones());
                 System.out.println(ANSI_BLUE + "------------------------------------------" + ANSI_RESET);
 
                 //buscar Atributos de tabla y agregarlos a la tabla
@@ -238,6 +240,7 @@ public class Vigilante {
             if (ultimoModificado != null) {
                 if (archivoActualLog != null) {
                     //se debe de revisar el último modificado
+                    //System.out.println("Ultimo modificado" + ultimoModificado.length() + "\ncaracterLog"+ this.caracterLog);
                     if (ultimoModificado.length() < this.caracterLog) {
                         this.caracterLog = 0;
                     }
@@ -251,7 +254,7 @@ public class Vigilante {
                     } else {
                         nLinea = (int) this.caracterLog;
                         nLinea = this.nOperaciones(raf, nLinea);
-                        ArrayList<String> remover = new ArrayList<String>();
+                        remover = new ArrayList<String>();
                         for (Fragment f : this.datosBD.getTabla().getFragmentos()) {
                             for (Fragment frag : this.fragment) {
                                 if (f.getName().equals(frag.getName())) {
@@ -294,7 +297,7 @@ public class Vigilante {
                                 }
                             }
                         }
-
+                        nLinea = 0;
                         costslogMongoDBextencionHibrida(raf, nLinea);
                     }
                 } else {
@@ -307,7 +310,7 @@ public class Vigilante {
                             nLinea = this.nOperaciones(raf, nLinea);
                         }
                     }
-                    ArrayList<String> remover = new ArrayList<String>();
+                    remover = new ArrayList<String>();
                     for (Fragment f : this.datosBD.getTabla().getFragmentos()) {
                         for (Fragment frag : this.fragment) {
                             if (f.getName().equals(frag.getName())) {
@@ -329,18 +332,21 @@ public class Vigilante {
                             }
                         }
                     }
-
+                    copia = new ArrayList<Fragment>();
+                    copia02 = new ArrayList<Fragment>();
                     for (int i = 0; i < remover.size(); i++) {
                         System.out.println(" ");
                         System.out.println("Remove fragment: " + remover.get(i));
                         for (Fragment f : this.datosBD.getTabla().getFragmentos()) {
                             if (f.getName().equals(remover.get(i))) {
+                                copia.add(f);
                                 this.datosBD.getTabla().getFragmentos().remove(f);
                                 break;
                             }
                         }
                         for (Fragment frag : this.fragment) {
                             if (frag.getName().equals(remover.get(i))) {
+                                copia02.add(frag);
                                 this.fragment.remove(frag);
                                 break;
                             }
@@ -403,7 +409,7 @@ public class Vigilante {
                                 System.out.println(ANSI_BLUE + "------------------------------------------" + ANSI_RESET);
                                 System.out.println("Apply new Scheme Hybrid");
                                 System.out.println(ANSI_BLUE + "------------------------------------------" + ANSI_RESET);
-                                this.datosBD.getHybrid().hybridFragmentation(fragmentar);
+                                //this.datosBD.getHybrid().hybridFragmentation(fragmentar);
                                 ran.close();
                                 this.eliminar_Archivos(dirLogs);
                                 System.out.println(ANSI_BLUE + "------------------------------------------" + ANSI_RESET);
@@ -414,6 +420,14 @@ public class Vigilante {
                     }//cierre del if que compara la ip del fragmento con la ip del sitio actual
                 }//cierre del for 
                 this.eliminar_Predicado_XAMANA(token);
+                for (int c = 0; c < copia.size(); c++) {
+                    this.datosBD.getTabla().getFragmentos().add(copia.get(c));
+                }
+                for (int c2 = 0; c2 < copia02.size(); c2++) {
+                    this.fragment.add(copia02.get(c2));
+                }
+
+                //Ciclo para recorrrer this.datosdb.getFragmentos
             } else {
                 System.out.println("There are not files in the folder");
             }
@@ -425,6 +439,7 @@ public class Vigilante {
 
     public int costslogMongoDBextencionHibrida(RandomAccessFile raf, int lNumeroLineas) {
         try {
+            raf.seek(0);
             System.out.println(" ");
             while (raf.getFilePointer() < raf.length()) {
                 String actual = raf.readLine();
@@ -433,7 +448,6 @@ public class Vigilante {
                     f.setNoperationsLineLog(0.0);
                     f.setCostH(0.0);
                     f.setCostV(0.0);
-
                 }
                 System.out.println(ANSI_BLUE + "----------------HYBRID COST----------------" + ANSI_RESET);
                 String ipLinea = "";
@@ -445,7 +459,6 @@ public class Vigilante {
                         break;
                     }
                 }
-
                 if (actual.toLowerCase().contains("command") && contieneNombreEsquema(actual.toLowerCase()) && band == true) {
                     JSONObject j = new JSONObject(actual);
                     String c = j.get("c").toString().toLowerCase().trim();
@@ -514,7 +527,8 @@ public class Vigilante {
                         double tuplasDelWhere = 0;
                         ArrayList<Fragment> fResuelvenPredicados = new ArrayList<>();
                         for (Fragment fragmento : fResuelvenAtributos) {
-                            countp = this.nTuplas02(fragmento.getName(), where_statement.toLowerCase(), fragmento.getSite());
+                            //countp = this.nTuplas02(fragmento.getName(), where_statement.toLowerCase(), fragmento.getSite());
+                            countp = this.nTuplas02(fragmento.getName(), where_statement, fragmento.getSite());
                             tuplasDelWhere = tuplasDelWhere + countp;
                             //Filtrar por predicado
                             if (countp > 0) {
@@ -550,7 +564,7 @@ public class Vigilante {
                             }
                         }
                         costoOperacionHorizontal = tuplasDelWhere * ValorAsignadoOperacion;
-                        costoOperacionHibrida = (costoOperacionVertical + costoOperacionHorizontal) / 2;
+                        costoOperacionHibrida = (costoOperacionVertical + costoOperacionHorizontal);
                         System.out.println(" ");
                         System.out.println("Cost of vertical operation: " + costoOperacionVertical);
                         System.out.println("Cost of horizontal operation: " + costoOperacionHorizontal);
